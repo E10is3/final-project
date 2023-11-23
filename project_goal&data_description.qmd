@@ -14,3 +14,20 @@ library(ggplot2)
 ```
 
 You can find the github repository associated to this project via this link : [github-repository](https://github.com/E10is3/final-project.git)
+
+## Sources :
+
+The data I use come from two open source data sets of the World Bank. The first one includes governance indicators available via this link : [WorldBank-governance-indicators](https://databank.worldbank.org/source/worldwide-governance-indicators#)
+
+Please note that the ticked options are the preset ones by the website and not the ones I will use. To get the exact same .csv file, select all the 214 countries available, the years 2020, 2021 and 2022, and all the 36 variable series before the download.
+
+The second data set includes development indicators, available via this link : [WorldBank-development-indicators](https://databank.worldbank.org/source/world-development-indicators#)
+
+To get the exact same .csv file, select all the 266 countries available, the years 2020, 2021 and 2022, and the 29 variable series listed in the description below.
+
+
+## Description of the sources :
+#### Governance indicators :
+The data set include indicators for six dimensions of governance: Control of Corruption; Government Effectiveness; Political Stability and Absence of Violence/Terrorism;  Regulatory Quality; Rule of Law; and Voice and Accountability. For each dimensions, the data set provides an indicator and its standard error, the rank of the country, both upper and lower bound of a 95% confidence interval for this ranking, as well as the number of sources used to compute the indicator.
+#### Development indicators :
+The data set is a compilation the World Bank did from officially recognized international sources, including national, regional and global estimates. In order to have a multidimensional perception of the development of each country, I selected well known indicators (GDP per capita, GDP PPP, FDI inflows and outflows) as well as indicators related to health such as hospital bed per 1000 people or life expectancy; education such as literacy rate or children out of school; infrastructure such as access to electricity or internet use and poverty.
