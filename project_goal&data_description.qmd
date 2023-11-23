@@ -1,0 +1,16 @@
+---
+title: "Project goal and data description"
+author: "Eloïse Vannier"
+---
+
+```{r}
+#| message: false
+here::i_am("final_project.Rproj")
+library(here)
+library(vroom)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+You can find the github repository associated to this project via this link : [github-repository](https://github.com/E10is3/final-project.git)
