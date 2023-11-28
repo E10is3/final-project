@@ -29,7 +29,10 @@ To get the exact same .csv file, select all the 266 countries available, the yea
 
 #### Governance indicators :
 
-The data set include indicators for six dimensions of governance: Control of Corruption; Government Effectiveness; Political Stability and Absence of Violence/Terrorism; Regulatory Quality; Rule of Law; and Voice and Accountability. For each dimensions, the data set provides an indicator and its standard error, the rank of the country, both upper and lower bound of a 95% confidence interval for this ranking, as well as the number of sources used to compute the indicator. \#### Development indicators : The data set is a compilation the World Bank did from officially recognized international sources, including national, regional and global estimates. In order to have a multidimensional perception of the development of each country, I selected well known indicators (GDP per capita, GDP PPP, FDI inflows and outflows) as well as indicators related to health such as hospital bed per 1000 people or life expectancy; education such as literacy rate or children out of school; infrastructure such as access to electricity or internet use and poverty.
+The data set include indicators for six dimensions of governance: Control of Corruption; Government Effectiveness; Political Stability and Absence of Violence/Terrorism; Regulatory Quality; Rule of Law; and Voice and Accountability. For each dimensions, the data set provides an indicator and its standard error, the rank of the country, both upper and lower bound of a 95% confidence interval for this ranking, as well as the number of sources used to compute the indicator.
+#### Development indicators : 
+
+The data set is a compilation the World Bank did from officially recognized international sources, including national, regional and global estimates. In order to have a multidimensional perception of the development of each country, I selected well known indicators (GDP per capita, GDP PPP, FDI inflows and outflows) as well as indicators related to health such as hospital bed per 1000 people or life expectancy; education such as literacy rate or children out of school; infrastructure such as access to electricity or internet use and poverty.
 
 ## Data loading :
 
@@ -38,3 +41,26 @@ The data set include indicators for six dimensions of governance: Control of Cor
 govc_indicators <- vroom(here("data", "governance_indicators.csv"))
 dvpt_indicators <- vroom(here("data", "development_indicators.csv"))
 ```
+
+```{r}
+govc_indicators |> summarise("nb of lines" = NROW(govc_indicators),"nb of colmuns"= NCOL(govc_indicators))|>
+  knitr::kable(align = 'c', caption = "Governance data set properties")
+```
+
+```{r}
+dvpt_indicators |> summarise("nb of lines" = NROW(dvpt_indicators),"nb of colmuns"= NCOL(dvpt_indicators))|>
+  knitr::kable(align = 'c', caption = "Development data set properties")
+```
+
+## Data cleaning and joining :
+
+### Dealing with the missing variable :
+In both data set, a lot of cells contain "..", that can easily be interpreted as missing value. We need to take this into account :
+
+```{r}
+dvpt_indicators [dvpt_indicators == ".."] <- NA
+govc_indicators [govc_indicators == ".."] <- NA
+```
+
+
+
