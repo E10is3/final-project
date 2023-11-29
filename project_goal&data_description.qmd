@@ -45,11 +45,13 @@ dvpt_indicators <- vroom(here("data", "development_indicators.csv"))
 We can see that the columns containing the data of 2020, 2021 and 2022 are not all of the type double but character, we will need to tackle this issue later to be able to study the data sets.
 
 ```{r}
+#| message: false
 govc_indicators |> summarise("nb of lines" = NROW(govc_indicators),"nb of colmuns"= NCOL(govc_indicators))|>
   knitr::kable(align = 'c', caption = "Governance data set properties")
 ```
 
 ```{r}
+#| message: false
 dvpt_indicators |> summarise("nb of lines" = NROW(dvpt_indicators),"nb of colmuns"= NCOL(dvpt_indicators))|>
   knitr::kable(align = 'c', caption = "Development data set properties")
 ```
@@ -60,6 +62,7 @@ dvpt_indicators |> summarise("nb of lines" = NROW(dvpt_indicators),"nb of colmun
 In both data set, a lot of cells contain "..", that can easily be interpreted as missing value. We need to take this into account :
 
 ```{r}
+#| message: false
 dvpt_indicators [dvpt_indicators == ".."] <- NA
 govc_indicators [govc_indicators == ".."] <- NA
 ```
@@ -68,16 +71,19 @@ govc_indicators [govc_indicators == ".."] <- NA
 
 The world bank provided information about data collection and definition at the end of each data set. We know that the country code of the rows that contain countries data are 3 characters so we can select them for the data set with the smallest number of countries/rows :
 ```{r}
+#| message: false
 govc_indicators = govc_indicators |> filter(nchar(`Country Code`)==3)
 ```
 
 Then we can keep the list of the countries and their code in a separate data frame.
 ```{r}
+#| message: false
 list_country = govc_indicators |> distinct (`Country Name`,`Country Code`)
 ```
 
 And select in the development data frame the data of the corresponding countries.
 ```{r}
+#| message: false
 dvpt_indicators = inner_join(list_country,dvpt_indicators,join_by(`Country Name`,`Country Code`))
 ```
 
@@ -85,6 +91,7 @@ dvpt_indicators = inner_join(list_country,dvpt_indicators,join_by(`Country Name`
 
 We saw just after loading the data that type of the columns containing the data of 2020, 2021 and 2022 was character (except for the column 2022 of the governance data frame). We make sure that we read those data as numerical values and not as strings :
 ```{r}
+#| message: false
 govc_indicators <- govc_indicators |>  mutate(`2021 [YR2021]` = parse_double(`2021 [YR2021]`),`2020 [YR2020]` = parse_double(`2020 [YR2020]`))
 
 dvpt_indicators <- dvpt_indicators |>  mutate(`2022 [YR2022]` = parse_double(`2022 [YR2022]`), `2021 [YR2021]` = parse_double(`2021 [YR2021]`),`2020 [YR2020]` = parse_double(`2020 [YR2020]`))
@@ -95,6 +102,7 @@ dvpt_indicators <- dvpt_indicators |>  mutate(`2022 [YR2022]` = parse_double(`20
 For countries, indicators values are only available for one or two years. 
 We compute the mean of those three columns to have a variable column with way less NA.
 ```{r}
+#| message: false
 mean.govc <- rowMeans((govc_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
 govc_indicators <- govc_indicators |> mutate("Mean"=mean.govc)
 mean.dvpt <- rowMeans((dvpt_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
@@ -105,14 +113,59 @@ dvpt_indicators <- dvpt_indicators |> mutate("Mean"=mean.dvpt)
 
 The "series codes" of the data sets don't seem useful at the moment so we save them in another data frame. 
 ```{r}
+#| message: false
 govc_codes = govc_indicators |> distinct(`Series Name`,`Series Code`) 
 dvpt_codes = dvpt_indicators |> distinct(`Series Name`,`Series Code`)
 ```
 
 We can now suppress this column in both data frame, as well as the three year columns. 
 ```{r}
+#| message: false
 govc_indicators = govc_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
 dvpt_indicators = dvpt_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
 ```
 
+### Removing the indicators for which there are too many NA :
 
+Let's arbitrary say that an indicator is only interesting if it is measured for at least 75% of the sample of countries. We first compute this value :
+```{r}
+#| message: false
+critic_minimum = 0.75*NROW(list_country)
+```
+
+We then do a list of indicators that meet the criteria :
+```{r}
+#| message: false
+keep.dvpt.indicator = " "
+for (i in 1:NROW(dvpt_codes)) {
+  df = dvpt_indicators |> filter(dvpt_indicators$`Series Name`== dvpt_codes$`Series Name`[i])
+  if (sum(is.na(df$Mean)) < critic_minimum) {
+    keep.dvpt.indicator = c(keep.dvpt.indicator,dvpt_codes$`Series Name`[i])
+  }
+}
+```
+
+And we modify the data set accordingly :
+```{r}
+#| message: false
+keep.dvpt.indicator = as.data.frame(keep.dvpt.indicator) |>
+  rename(`Series Name`=keep.dvpt.indicator)
+dvpt_indicators <- inner_join(keep.dvpt.indicator,dvpt_indicators,join_by(`Series Name`))
+```
+We kept `r NROW(keep.dvpt.indicator)-1` indicators out of the `r NROW(dvpt_codes)` we selected in the first place.
+
+We do the same for the governance data set :
+```{r}
+#| message: false
+keep.govc.indicator = " "
+for (i in 1:NROW(govc_codes)) {
+  df = govc_indicators |> filter(govc_indicators$`Series Name`== govc_codes$`Series Name`[i])
+  if (sum(is.na(df$Mean)) < critic_minimum) {
+    keep.govc.indicator = c(keep.govc.indicator,govc_codes$`Series Name`[i])
+  }
+}
+keep.govc.indicator = as.data.frame(keep.govc.indicator) |>
+  rename(`Series Name`=keep.govc.indicator)
+govc_indicators <- inner_join(keep.govc.indicator,govc_indicators,join_by(`Series Name`))
+```
+We kept `r NROW(keep.govc.indicator)-1` indicators and there were `r NROW(govc_codes)`selected in the first place : all of them were well documented accross the sample of countries.
