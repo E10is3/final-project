@@ -11,6 +11,7 @@ library(vroom)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(tidyverse)
 ```
 
 You can find the github repository associated to this project via this link : [github-repository](https://github.com/E10is3/final-project.git)
@@ -30,6 +31,7 @@ To get the exact same .csv file, select all the 266 countries available, the yea
 #### Governance indicators :
 
 The data set include indicators for six dimensions of governance: Control of Corruption; Government Effectiveness; Political Stability and Absence of Violence/Terrorism; Regulatory Quality; Rule of Law; and Voice and Accountability. For each dimensions, the data set provides an indicator and its standard error, the rank of the country, both upper and lower bound of a 95% confidence interval for this ranking, as well as the number of sources used to compute the indicator.
+
 #### Development indicators : 
 
 The data set is a compilation the World Bank did from officially recognized international sources, including national, regional and global estimates. In order to have a multidimensional perception of the development of each country, I selected well known indicators (GDP per capita, GDP PPP, FDI inflows and outflows) as well as indicators related to health such as hospital bed per 1000 people or life expectancy; education such as literacy rate or children out of school; infrastructure such as access to electricity or internet use and poverty.
@@ -37,10 +39,10 @@ The data set is a compilation the World Bank did from officially recognized inte
 ## Data loading :
 
 ```{r}
-#| message: false
 govc_indicators <- vroom(here("data", "governance_indicators.csv"))
 dvpt_indicators <- vroom(here("data", "development_indicators.csv"))
 ```
+
 
 ```{r}
 govc_indicators |> summarise("nb of lines" = NROW(govc_indicators),"nb of colmuns"= NCOL(govc_indicators))|>
@@ -61,6 +63,30 @@ In both data set, a lot of cells contain "..", that can easily be interpreted as
 dvpt_indicators [dvpt_indicators == ".."] <- NA
 govc_indicators [govc_indicators == ".."] <- NA
 ```
+
+### Keeping only rows with countries data :
+
+The world bank provided information about data collection and definition at the end of each data set. We know that the country code of the rows that contain countries data are 3 characters so we can select them for the data set with the smallest number of countries/rows :
+```{r}
+govc_indicators = govc_indicators |> filter(nchar(`Country Code`)==3)
+```
+
+Then we can keep the list of the countries and their code in a separate data frame.
+```{r}
+list_country = govc_indicators |> distinct (`Country Name`,`Country Code`)
+```
+
+And select in the development data frame the data of the corresponding countries.
+```{r}
+dvpt_indicators = inner_join(list_country,dvpt_indicators,join_by(`Country Name`))
+```
+
+
+
+
+
+
+
 
 
 
