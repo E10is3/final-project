@@ -55,6 +55,24 @@ govc_indicators |> summarise("nb of lines" = NROW(govc_indicators),"nb of colmun
 dvpt_indicators |> summarise("nb of lines" = NROW(dvpt_indicators),"nb of colmuns"= NCOL(dvpt_indicators))|>
   knitr::kable(align = 'c', caption = "Development data set properties")
 ```
+## Variables descriptions :
+
+#### Governance indicators :
+We use the description of the variables provided by the World Bank at theend of the data set.
+```{r}
+govc_description <- govc_indicators |> filter(nchar(`Country Code`)!=3) |> select(`Country Code`,`Series Name`) |> slice(-1)|> rename(Indicator = `Country Code`)|>rename(Description = `Series Name`)
+knitr::kable(govc_description)
+```
+
+#### Development indicators :
+The description at the end of this data set was not as well structured as the previous one. I didn't want to simply do copy pastes so I tried to make a table by selecting the concerned columns and lines. The code works for the first few variables but the rest is messy and I didn't find the cause of the issue. Please excuse-me for the lack of friendliness of the following table, I will definitely change this before the submission of the last part of the project.
+```{r}
+dvpt_description <- dvpt_indicators[-(1:7719), ] |>
+  select(`Series Name`,`2020 [YR2020]`)|>
+  slice(-1,-9,-10)|> rename(Indicator = `Series Name`)|>rename (Description = `2020 [YR2020]`)
+dvpt_description <- dvpt_description[-(29:41), ]
+knitr::kable(dvpt_description)
+```
 
 ## Data cleaning and joining :
 
@@ -172,7 +190,7 @@ We kept `r NROW(keep.govc.indicator)-1` indicators and there were `r NROW(govc_c
 
 ## Research question :
 The goal of this project is to study the links between the governance of a country, and its development. 
-The notion of development is interesting as it can approximate well-being.It encompasses economic aspects, as poverty has a negative impact on the happiness for sure, but can't be limited to this economic lens. More and more economists, sociologist and philosophers highlight the limits of the GDP as indicator of well-being. Indeed, economic development alone may leads to disparities, leaving certain segments of the population marginalized. It is therefore crucial to take into account other dimensions of human development such as access to a good health system and education, or social inequalities. 
-Since the robustness of legal frameworks and the protection of human rights can also impact well-being (increasing a feeling of safety and justice), it is logical to add governance aspects to this study.
+The notion of development is interesting as it can approximate well-being. It encompasses economic aspects, as poverty has a negative impact on the happiness for sure, but can't be limited to this economic lens. More and more economists, sociologist and philosophers highlight the limits of the GDP as indicator of well-being. Indeed, economic development alone may leads to disparities, leaving certain segments of the population marginalized. It is therefore crucial to take into account other dimensions of human development such as access to a good health system and education, or social inequalities. 
+Since the robustness of legal frameworks, the violence and the protection of human rights can also impact well-being (increasing a feeling of safety and justice), it is logical to add governance aspects to this study.
 Governance refers to the systems, structures, and processes by which a country is directed and controlled. It encompasses not only formal government institutions but also all practices that influence decision-making. Effective governance is a cornerstone of development, as it establishes the rules of the game, ensures accountability, and promotes transparency. The quality of governance profoundly influences a country's attractiveness to investors, the efficiency of public services, and the overall well-being of its citizens.
 Therefore, understanding these links is interesting for designing effective policies, and fostering sustainable development.
