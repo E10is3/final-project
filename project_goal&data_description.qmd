@@ -168,4 +168,11 @@ keep.govc.indicator = as.data.frame(keep.govc.indicator) |>
   rename(`Series Name`=keep.govc.indicator)
 govc_indicators <- inner_join(keep.govc.indicator,govc_indicators,join_by(`Series Name`))
 ```
-We kept `r NROW(keep.govc.indicator)-1` indicators and there were `r NROW(govc_codes)`selected in the first place : all of them were well documented accross the sample of countries.
+We kept `r NROW(keep.govc.indicator)-1` indicators and there were `r NROW(govc_codes)`selected in the first place : all of them were well documented across the sample of countries.
+
+## Research question :
+The goal of this project is to study the links between the governance of a country, and its development. 
+The notion of development is interesting as it can approximate well-being.It encompasses economic aspects, as poverty has a negative impact on the happiness for sure, but can't be limited to this economic lens. More and more economists, sociologist and philosophers highlight the limits of the GDP as indicator of well-being. Indeed, economic development alone may leads to disparities, leaving certain segments of the population marginalized. It is therefore crucial to take into account other dimensions of human development such as access to a good health system and education, or social inequalities. 
+Since the robustness of legal frameworks and the protection of human rights can also impact well-being (increasing a feeling of safety and justice), it is logical to add governance aspects to this study.
+Governance refers to the systems, structures, and processes by which a country is directed and controlled. It encompasses not only formal government institutions but also all practices that influence decision-making. Effective governance is a cornerstone of development, as it establishes the rules of the game, ensures accountability, and promotes transparency. The quality of governance profoundly influences a country's attractiveness to investors, the efficiency of public services, and the overall well-being of its citizens.
+Therefore, understanding these links is interesting for designing effective policies, and fostering sustainable development.
