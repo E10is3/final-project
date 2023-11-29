@@ -101,9 +101,18 @@ mean.dvpt <- rowMeans((dvpt_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`
 dvpt_indicators <- dvpt_indicators |> mutate("Mean"=mean.dvpt)
 ```
 
+### Saving the variables code in a separate data frame for both data sets:
 
+The "series codes" of the data sets don't seem useful at the moment so we save them in another data frame. 
+```{r}
+govc_codes = govc_indicators |> distinct(`Series Name`,`Series Code`) 
+dvpt_codes = dvpt_indicators |> distinct(`Series Name`,`Series Code`)
+```
 
-
-
+We can now suppress this column in both data frame, as well as the three year columns. 
+```{r}
+govc_indicators = govc_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
+dvpt_indicators = dvpt_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
+```
 
 
