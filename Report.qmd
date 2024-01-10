@@ -1,0 +1,81 @@
+---
+title: "Role of institution and governance in the development"
+author: "Eloïse Vannier"
+format: pdf
+execute:
+  echo: false
+---
+
+```{r}
+#| message: false
+here::i_am("final_project.Rproj")
+library(here)
+library(vroom)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(tidyverse)
+```
+
+```{r}
+#| message: false
+# Data loading :
+govc_indicators <- vroom(here("data", "governance_indicators.csv"),na = (".."))
+dvpt_indicators <- vroom(here("data", "development_indicators.csv"),na = (".."))
+
+# Keeping only rows containing countries for which both data sets provide data :
+govc_indicators = govc_indicators |> filter(nchar(`Country Code`)==3)
+list_country = govc_indicators |> distinct (`Country Name`,`Country Code`)
+dvpt_indicators = inner_join(list_country,dvpt_indicators,join_by(`Country Name`,`Country Code`))
+
+# Changing the type of the values of the development indicators (perceived as characters before) :
+
+dvpt_indicators <- dvpt_indicators |>  mutate(`2022 [YR2022]` = parse_double(`2022 [YR2022]`), `2021 [YR2021]` = parse_double(`2021 [YR2021]`),`2020 [YR2020]` = parse_double(`2020 [YR2020]`))
+
+# Computing the mean of the three years to get one and only value for each indicators and have less NA :
+
+mean.govc <- rowMeans((govc_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
+govc_indicators <- govc_indicators |> mutate("Mean"=mean.govc)
+mean.dvpt <- rowMeans((dvpt_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
+dvpt_indicators <- dvpt_indicators |> mutate("Mean"=mean.dvpt)
+
+# Saving the series' code in a separate dataframe and suppressing the "Series Code" column as well as the three "years column" in each dataframe :
+govc_codes = govc_indicators |> distinct(`Series Name`,`Series Code`) 
+dvpt_codes = dvpt_indicators |> distinct(`Series Name`,`Series Code`)
+
+govc_indicators = govc_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
+dvpt_indicators = dvpt_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
+
+# Supressing the indicators providing data for less than 75% of the countries in our sample :
+critic_minimum = 0.75*NROW(list_country)
+keep.dvpt.indicator = " "
+for (i in 1:NROW(dvpt_codes)) {
+  df = dvpt_indicators |> filter(dvpt_indicators$`Series Name`== dvpt_codes$`Series Name`[i])
+  if (sum(is.na(df$Mean)) < critic_minimum) {
+    keep.dvpt.indicator = c(keep.dvpt.indicator,dvpt_codes$`Series Name`[i])
+  }
+}
+keep.dvpt.indicator = as.data.frame(keep.dvpt.indicator) |>
+  rename(`Series Name`=keep.dvpt.indicator)
+dvpt_indicators <- inner_join(keep.dvpt.indicator,dvpt_indicators,join_by(`Series Name`))
+
+keep.govc.indicator = " "
+for (i in 1:NROW(govc_codes)) {
+  df = govc_indicators |> filter(govc_indicators$`Series Name`== govc_codes$`Series Name`[i])
+  if (sum(is.na(df$Mean)) < critic_minimum) {
+    keep.govc.indicator = c(keep.govc.indicator,govc_codes$`Series Name`[i])
+  }
+}
+keep.govc.indicator = as.data.frame(keep.govc.indicator) |>
+  rename(`Series Name`=keep.govc.indicator)
+govc_indicators <- inner_join(keep.govc.indicator,govc_indicators,join_by(`Series Name`))
+
+# Joining the two dataframes :
+wide_govc <- pivot_wider(govc_indicators, names_from = `Series Name`, values_from = Mean)
+wide_dvpt <- pivot_wider(dvpt_indicators, names_from = `Series Name`, values_from = Mean)
+
+global_df <- inner_join(wide_dvpt,wide_govc, join_by(`Country Name`,`Country Code`))
+
+long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of population)`:`Voice and Accountability: Standard Error`, names_to = "Series Name", values_to = "Mean")
+```
+
