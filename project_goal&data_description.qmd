@@ -34,7 +34,7 @@ The data set include indicators for six dimensions of governance: Control of Cor
 
 #### Development indicators : 
 
-The data set is a compilation the World Bank did from officially recognized international sources, including national, regional and global estimates. In order to have a multidimensional perception of the development of each country, I selected well known indicators (GDP per capita, GDP PPP, FDI inflows and outflows) as well as indicators related to health such as hospital bed per 1000 people or life expectancy; education such as literacy rate or children out of school; infrastructure such as access to electricity or internet use and poverty.
+The data set is a compilation the World Bank did from officially recognized international sources, including national, regional and global estimates. In order to have a multidimensional perception of the development of each country, I selected well known indicators (GDP per capita, GDP PPP, FDI inflows and outflows) as well as indicators related to health such as hospital bed per 1000 people or life expectancy; education such as literacy rate or number of children out of school; infrastructure such as access to electricity or internet use and poverty.
 
 ## Data loading :
 
@@ -178,7 +178,22 @@ keep.govc.indicator = as.data.frame(keep.govc.indicator) |>
   rename(`Series Name`=keep.govc.indicator)
 govc_indicators <- inner_join(keep.govc.indicator,govc_indicators,join_by(`Series Name`))
 ```
-We kept `r NROW(keep.govc.indicator)-1` indicators and there were `r NROW(govc_codes)`selected in the first place : all of them were well documented across the sample of countries.
+We kept `r NROW(keep.govc.indicator)-1` indicators and there were `r NROW(govc_codes)` selected in the first place : all of them were well documented across the sample of countries.
+
+### Joining of the data sets :
+
+```{r}
+wide_govc <- pivot_wider(govc_indicators, names_from = `Series Name`, values_from = Mean)
+wide_dvpt <- pivot_wider(dvpt_indicators, names_from = `Series Name`, values_from = Mean)
+```
+
+```{r}
+global_df <- inner_join(wide_dvpt,wide_govc, join_by(`Country Name`,`Country Code`))
+```
+
+```{r}
+long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of population)`:`Voice and Accountability: Standard Error`, names_to = "Series Name", values_to = "Mean")
+```
 
 ## Research question :
 The goal of this project is to study the links between the governance of a country, and its development. 
