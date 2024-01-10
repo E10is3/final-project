@@ -29,11 +29,9 @@ list_country = govc_indicators |> distinct (`Country Name`,`Country Code`)
 dvpt_indicators = inner_join(list_country,dvpt_indicators,join_by(`Country Name`,`Country Code`))
 
 # Changing the type of the values of the development indicators (perceived as characters before) :
-
 dvpt_indicators <- dvpt_indicators |>  mutate(`2022 [YR2022]` = parse_double(`2022 [YR2022]`), `2021 [YR2021]` = parse_double(`2021 [YR2021]`),`2020 [YR2020]` = parse_double(`2020 [YR2020]`))
 
 # Computing the mean of the three years to get one and only value for each indicators and have less NA :
-
 mean.govc <- rowMeans((govc_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
 govc_indicators <- govc_indicators |> mutate("Mean"=mean.govc)
 mean.dvpt <- rowMeans((dvpt_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
@@ -78,4 +76,46 @@ global_df <- inner_join(wide_dvpt,wide_govc, join_by(`Country Name`,`Country Cod
 
 long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of population)`:`Voice and Accountability: Standard Error`, names_to = "Series Name", values_to = "Mean")
 ```
+
+## I) Research question presentation
+## II) Data sets descriptions 
+## III) Data analysis
+## IV) Conclusion
+
+## V) Annex (data import work and sources)
+
+#### Data import work :
+Here are the few steps to compute the global data frame used in this study :
+First both data sets are loaded, we make sure that ".." is perceived as NA.
+We check that the type of each of the column with values is double, and make the change necessary for the values'column of the development data set for which it was not the case.
+Then the rows containing data of countries present in both data frame are selected.
+In order to have a variable column with less NA, we compute the mean of those three columns.
+We then select the indicators for which there is more than 25% of NA. 
+Finally, the joining of the two data sets : we pivot them to get their wide version, and do an inner join.
+Once they are joined, we pivot again the global data frame we just obtained to have its longer form.
+
+The code of this preparation work is visible at the beginning of the quarto file corresponding to this report. A longer and more detailed version of it is also available in the "project_goal&data_description" quarto file present in the github repository of this project : [github-repository](https://github.com/E10is3/final-project.git)
+
+#### Sources :
+The data I use come from two open source data sets of the World Bank. 
+The first one includes governance indicators available via this link : [WorldBank-governance-indicators](https://databank.worldbank.org/source/worldwide-governance-indicators#)
+Please note that the ticked options are the preset ones by the website and not the ones I will use. To get the exact same .csv file, select all the 214 countries available, the years 2020, 2021 and 2022, and all the 36 variable series before the download.
+The second data set includes development indicators, available via this link : [WorldBank-development-indicators](https://databank.worldbank.org/source/world-development-indicators#)
+To get the exact same .csv file, select all the 266 countries available, the years 2020, 2021 and 2022. I first selected `r NROW(dvpt_codes)` variable series but kept only `r NROW(keep.dvpt.indicator)-1` of them, since the other three provided data for less than 75% of the countries of the final sample. Here is the list of those `r NROW(keep.dvpt.indicator)-1` variables series :
+```{r}
+#| message: false
+print(keep.dvpt.indicator)
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
