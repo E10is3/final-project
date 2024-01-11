@@ -15,6 +15,9 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(tidyverse)
+library(world)
+library(spData)
+library(raster)
 ```
 
 ```{r}
@@ -78,8 +81,28 @@ long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of po
 ```
 
 ## I) Research question presentation
-## II) Data sets descriptions 
+
+## II) Data sets descriptions
+
 ## III) Data analysis
+When we think about "development", we first think of economic growth. If we want to improve the situation of developing countries, we must then try to foster growth. But how can we go that ? What parameters play a role in economic growth ?
+While trying to explain economic growth, Sollow acknowledged two factors of production : capital and labor. The "residual" he obtained once he took those factors into account was significant and attributed to the productivity of the production factors. Several variables of the data set can indicate productivity : the HCI index computed by the World Bank for females, males and the total population, and the number of researchers in R&D per million people. As mentioned earlier the HCI was computed precisely to estimates the productivity of workers of tomorrow, and the more researchers there is, the more likely they will find new innovation that will possibly increase capital and/or labor productivity.
+Let's check if our data go along with those hints :
+
+```{r}
+ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()
+```
+```{r}
+pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human capital index (HCI), female (scale 0-1)","Human capital index (HCI), male (scale 0-1)"), 
+                        names_to = "HCI", 
+                        values_to = "HCI value") |>
+  ggplot(aes(x =`GDP per capita, PPP (current international $)`,y = `HCI value`, group = HCI)) + 
+  geom_point(aes(color = HCI))
+```
+These graphs shows a positive but a bit less clear correlation between the HCI and the GDP growth, and a positive but decreasing relationship between the HCI and the GDP per capita taking into account the parity of purchasing power. Of course this is not sufficient to deduce a causal relationship between those variables but it does not contradict our hypothesis. We can also note that the HCI is higher for females than for males : that means that there is more chance for a girl than for a boy born between 2020 and 2022 to become as productive as they would if they enjoyed full health and complete education when they will grow up.
+
+
+
 ## IV) Conclusion
 
 ## V) Annex (data import work and sources)
