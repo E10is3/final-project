@@ -85,6 +85,7 @@ long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of po
 ## II) Data sets descriptions
 
 ## III) Data analysis
+
 When we think about "development", we first think of economic growth. If we want to improve the situation of developing countries, we must then try to foster growth. But how can we go that ? What parameters play a role in economic growth ?
 While trying to explain economic growth, Sollow acknowledged two factors of production : capital and labor. The "residual" he obtained once he took those factors into account was significant and attributed to the productivity of the production factors. Several variables of the data set can indicate productivity : the HCI index computed by the World Bank for females, males and the total population, and the number of researchers in R&D per million people. As mentioned earlier the HCI was computed precisely to estimates the productivity of workers of tomorrow, and the more researchers there is, the more likely they will find new innovation that will possibly increase capital and/or labor productivity.
 Let's check if our data go along with those hints :
@@ -107,6 +108,13 @@ ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Researchers in
 ```
 The two graphs right above show a positive and quite linear correlation between the number of researchers per million and the GDP per capita taking into account the parity of purchasing power. The relationship between the number of researchers and the economic growth is far less clear.
 Of course those four graphs are not sufficient to deduce a causal relationship between those variables, especially to see the links between HCI or the number of researchers per million people and economic growth. Indeed since those variable are supposed to impact future growth we would need either the past number of researchers per million people and the HCI level of at least 20 years ago, or the future economic growth to see the eventual impacts. But since the corresponding data are not available, those results are still interesting : they at least do not seem not contradict our hypotheses.
+
+Another common variable used to explain economic growth is the investment (again to increase productivity via innovation for example). Foreign Direct Investment impacts on growth are very discussed in economic literature, many arguments are both in favor and against FDI positive impacts on growth. For instance FDI could have positive knowledge and technological spillover on host country, but could also evict local firm in a way that just make profit leave the host country. The two following graphs shows that there are no significantly positive or negative correlation between FDI net inflows and outflows and GDP per capita growth.
+```{r}
+pivot_longer(global_df,cols = c("Foreign direct investment, net outflows (% of GDP)","Foreign direct investment, net inflows (% of GDP)"), names_to = "FDI", values_to = "FDI value") |>
+  ggplot(aes(x =`GDP per capita growth (annual %)`,y = `FDI value`)) + 
+  geom_point(aes(color = FDI,alpha=0.5))+geom_smooth(method = "lm", se = FALSE, col="black")+facet_wrap(~FDI)
+```
 
 ## IV) Conclusion
 
