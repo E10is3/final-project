@@ -90,7 +90,7 @@ While trying to explain economic growth, Sollow acknowledged two factors of prod
 Let's check if our data go along with those hints :
 
 ```{r}
-ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()
+ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
 ```
 ```{r}
 pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human capital index (HCI), female (scale 0-1)","Human capital index (HCI), male (scale 0-1)"), 
@@ -99,9 +99,14 @@ pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human c
   ggplot(aes(x =`GDP per capita, PPP (current international $)`,y = `HCI value`, group = HCI)) + 
   geom_point(aes(color = HCI))
 ```
-These graphs shows a positive but a bit less clear correlation between the HCI and the GDP growth, and a positive but decreasing relationship between the HCI and the GDP per capita taking into account the parity of purchasing power. Of course this is not sufficient to deduce a causal relationship between those variables but it does not contradict our hypothesis. We can also note that the HCI is higher for females than for males : that means that there is more chance for a girl than for a boy born between 2020 and 2022 to become as productive as they would if they enjoyed full health and complete education when they will grow up.
+These two first graphs show a slightly positive correlation between the HCI and the GDP growth, and a positive but decreasing relationship between the HCI and the GDP per capita taking into account the parity of purchasing power. We can also note that the HCI is higher for females than for males : that means that there is more chance for a girl than for a boy born between 2020 and 2022 to become as productive as they would if they enjoyed full health and complete education when they will grow up. 
 
-
+```{r}
+ggplot(global_df, aes(x =`GDP per capita, PPP (current international $)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
+ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
+```
+The two graphs right above show a positive and quite linear correlation between the number of researchers per million and the GDP per capita taking into account the parity of purchasing power. The relationship between the number of researchers and the economic growth is far less clear.
+Of course those four graphs are not sufficient to deduce a causal relationship between those variables, especially to see the links between HCI or the number of researchers per million people and economic growth. Indeed since those variable are supposed to impact future growth we would need either the past number of researchers per million people and the HCI level of at least 20 years ago, or the future economic growth to see the eventual impacts. But since the corresponding data are not available, those results are still interesting : they at least do not seem not contradict our hypotheses.
 
 ## IV) Conclusion
 
