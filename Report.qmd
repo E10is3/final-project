@@ -82,6 +82,15 @@ long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of po
 
 ## I) Research question presentation
 
+The goal of this project is to study the links between the governance of a country, and its development. 
+The notion of development is interesting as it can approximate well-being. It encompasses economic aspects, as poverty has a negative impact on the happiness for sure. We will therefore try to find what variables are correlated to GDP as it is the most known and computed economic indicator to get hints of how to foster economic growth.
+But development can't be limited to this economic lens. 
+More and more economists, sociologist and philosophers highlight the limits of the GDP as indicator of well-being. Indeed, economic development alone may leads to disparities, leaving certain segments of the population marginalized. It is therefore crucial to take into account other dimensions of human development such as access to a good health system and education, or social inequalities. 
+Since the robustness of legal frameworks, the violence and the protection of human rights can also impact economic growth and well-being (increasing a feeling of safety and justice for instance), it is logical to add governance aspects to this study.
+Governance refers to the systems, structures, and processes by which a country is directed and controlled. It encompasses not only formal government institutions but also all practices that influence decision-making. Effective governance is a cornerstone of development, as it establishes the rules of the game, ensures accountability, and promotes transparency. The quality of governance profoundly influences a country's attractiveness to investors, the efficiency of public services, and the overall well-being of its citizens.
+Therefore, understanding these links is crucial for designing effective policies, and fostering sustainable development.
+The Human Development Index was developed by Mahbub ul Haq and Sen to measure development using not only the GDP per capita and purchasing power parity, but also health indicator with the life-expectancy, and education indicators. At the end of our study, we will try to compute another composite indicator encompassing the main development aspects we will have just seen.
+
 ## II) Data sets descriptions
 
 ## III) Data analysis
@@ -98,14 +107,14 @@ While trying to explain economic growth, Sollow acknowledged two factors of prod
 Let's check if our data go along with those hints :
 
 ```{r}
-plot2 <- ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
+plot.HCI.growth <- ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
 ```
 ```{r}
-plot1 <- pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human capital index (HCI), female (scale 0-1)","Human capital index (HCI), male (scale 0-1)"), 
+plot.HCI.GDP <- pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human capital index (HCI), female (scale 0-1)","Human capital index (HCI), male (scale 0-1)"), 
                         names_to = "HCI", 
                         values_to = "HCI value") |>
   ggplot(aes(x =`GDP per capita, PPP (current international $)`,y = `HCI value`, group = HCI)) + geom_point(aes(color = HCI))+ theme(legend.position = "bottom",legend.direction="vertical")
-grid.arrange(plot1, plot2, ncol = 2)
+grid.arrange(plot.HCI.GDP, plot.HCI.growth, ncol = 2)
 ```
 These two first graphs show a slightly positive correlation between the HCI and the GDP growth, and a positive but decreasing relationship between the HCI and the GDP per capita taking into account the parity of purchasing power. We can also note that the HCI is higher for females than for males : that means that there is more chance for a girl than for a boy born between 2020 and 2022 to become as productive as they would if they enjoyed full health and complete education when they will grow up. 
 
@@ -144,6 +153,7 @@ Even individually, each dimension seems to be positively correlated with the eco
 govc.percentile.rank %>% mutate(`GDP per capita growth (annual %)`= global_df$`GDP per capita growth (annual %)`) %>% pivot_longer(cols = ends_with("Percentile Rank"), names_to = "Dimensions", values_to = "Percentile Rank") %>%
 ggplot(aes(x =`GDP per capita growth (annual %)`,y = `Percentile Rank`, group = Dimensions)) + theme(legend.position = "bottom",legend.direction="vertical")+geom_point(aes(color = Dimensions))+geom_smooth(method = "lm", se = FALSE, col = "black")+facet_wrap(~Dimensions)
 ```
+Economists discuss the relevance of GDP to indicate well-being.
 
 ## IV) Conclusion
 
