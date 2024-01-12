@@ -4,6 +4,7 @@ author: "Eloïse Vannier"
 format: pdf
 execute:
   echo: false
+  warning: false
 ---
 
 ```{r}
@@ -15,9 +16,8 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(tidyverse)
-library(world)
-library(spData)
-library(raster)
+library(broom)
+library(gridExtra)
 ```
 
 ```{r}
@@ -86,25 +86,33 @@ long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of po
 
 ## III) Data analysis
 
-When we think about "development", we first think of economic growth. If we want to improve the situation of developing countries, we must then try to foster growth. But how can we go that ? What parameters play a role in economic growth ?
+When we think about "development", we first think of economic growth. Indeed, as depicted in the following plot, economic growth has a negative and significant correlation with poverty. 
+```{r}
+pivot_longer(global_df,cols = c("Poverty headcount ratio at national poverty lines (% of population)","Poverty headcount ratio at $2.15 a day (2017 PPP) (% of population)","Prevalence of moderate or severe food insecurity in the population (%)"), names_to = "poverty estimates", values_to = "estimates value") |>
+  ggplot(aes(x =`GDP per capita growth (annual %)`,y = `estimates value`)) + 
+  geom_point(aes(color = `poverty estimates`,alpha=0.5))+geom_smooth(method = "lm", se = FALSE, col="black")+facet_wrap(~`poverty estimates`)+theme(legend.position = "bottom",legend.direction="vertical")
+```
+
+If we want to improve the situation of developing countries, we must then try to foster growth. But how can we go that ? What parameters play a role in economic growth ?
 While trying to explain economic growth, Sollow acknowledged two factors of production : capital and labor. The "residual" he obtained once he took those factors into account was significant and attributed to the productivity of the production factors. Several variables of the data set can indicate productivity : the HCI index computed by the World Bank for females, males and the total population, and the number of researchers in R&D per million people. As mentioned earlier the HCI was computed precisely to estimates the productivity of workers of tomorrow, and the more researchers there is, the more likely they will find new innovation that will possibly increase capital and/or labor productivity.
 Let's check if our data go along with those hints :
 
 ```{r}
-ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
+plot2 <- ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
 ```
 ```{r}
-pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human capital index (HCI), female (scale 0-1)","Human capital index (HCI), male (scale 0-1)"), 
+plot1 <- pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human capital index (HCI), female (scale 0-1)","Human capital index (HCI), male (scale 0-1)"), 
                         names_to = "HCI", 
                         values_to = "HCI value") |>
-  ggplot(aes(x =`GDP per capita, PPP (current international $)`,y = `HCI value`, group = HCI)) + 
-  geom_point(aes(color = HCI))
+  ggplot(aes(x =`GDP per capita, PPP (current international $)`,y = `HCI value`, group = HCI)) + geom_point(aes(color = HCI))+ theme(legend.position = "bottom",legend.direction="vertical")
+grid.arrange(plot1, plot2, ncol = 2)
 ```
 These two first graphs show a slightly positive correlation between the HCI and the GDP growth, and a positive but decreasing relationship between the HCI and the GDP per capita taking into account the parity of purchasing power. We can also note that the HCI is higher for females than for males : that means that there is more chance for a girl than for a boy born between 2020 and 2022 to become as productive as they would if they enjoyed full health and complete education when they will grow up. 
 
 ```{r}
-ggplot(global_df, aes(x =`GDP per capita, PPP (current international $)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
-ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
+plot.GDP.RD <- ggplot(global_df, aes(x =`GDP per capita, PPP (current international $)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
+plot.growth.RD <- ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
+grid.arrange(plot.GDP.RD, plot.growth.RD, ncol = 2)
 ```
 The two graphs right above show a positive and quite linear correlation between the number of researchers per million and the GDP per capita taking into account the parity of purchasing power. The relationship between the number of researchers and the economic growth is far less clear.
 Of course those four graphs are not sufficient to deduce a causal relationship between those variables, especially to see the links between HCI or the number of researchers per million people and economic growth. Indeed since those variable are supposed to impact future growth we would need either the past number of researchers per million people and the HCI level of at least 20 years ago, or the future economic growth to see the eventual impacts. But since the corresponding data are not available, those results are still interesting : they at least do not seem not contradict our hypotheses.
@@ -113,7 +121,28 @@ Another common variable used to explain economic growth is the investment (again
 ```{r}
 pivot_longer(global_df,cols = c("Foreign direct investment, net outflows (% of GDP)","Foreign direct investment, net inflows (% of GDP)"), names_to = "FDI", values_to = "FDI value") |>
   ggplot(aes(x =`GDP per capita growth (annual %)`,y = `FDI value`)) + 
-  geom_point(aes(color = FDI,alpha=0.5))+geom_smooth(method = "lm", se = FALSE, col="black")+facet_wrap(~FDI)
+  geom_point(aes(color = FDI,alpha=0.5))+geom_smooth(method = "lm", se = FALSE, col="black")+facet_wrap(~FDI)+theme(legend.position = "bottom",legend.direction="vertical")
+```
+
+North work suggest that institutions and governance also impact the GDP. 
+To study this impact, we can compute a composite indicator by doing the mean of the percentile rank of the six dimensions of governance measured by the World Bank and see its relationship with the GDP per capita PPP. 
+```{r}
+# Gathering of the governance variables according to their categories
+govc.percentile.rank <- global_df%>% dplyr::select(ends_with("Percentile Rank"))
+govc.estimate <- global_df%>% dplyr::select(ends_with("Estimate"))
+govc.pr.lower.bound <- global_df%>% dplyr::select(contains("Lower"))
+govc.pr.upper.bound <- global_df%>% dplyr::select(contains("Upper"))
+# Computation of an composite indicator data frame by computing the mean of the percentile rank of each variable and the upper and lower bound of the 90% confidence interval of this rank.
+govc.IC.percentile.rank <- as.data.frame(rowMeans(govc.percentile.rank))
+IC.df <-govc.IC.percentile.rank %>% mutate(govc.IC.lower.bound = (rowMeans(govc.pr.lower.bound))) %>% mutate(govc.IC.upper.bound = (rowMeans(govc.pr.upper.bound))) %>% mutate(govc.IC.percentile.rank = (rowMeans(govc.percentile.rank))) %>% dplyr::select(-`rowMeans(govc.percentile.rank)`) 
+# computation of the graphical representation of the correlation
+IC.df %>% mutate(`GDP per capita growth (annual %)`= global_df$`GDP per capita growth (annual %)`) %>% pivot_longer(cols = starts_with("govc"), names_to = "govc.IC", values_to = "govc.IC.value") %>%
+ggplot(aes(x =`GDP per capita growth (annual %)`,y = `govc.IC.value`, group = govc.IC)) + geom_point(aes(color = govc.IC,alpha=0.5))+ theme(legend.position = "bottom",legend.direction="vertical")+geom_smooth(method = "lm", se = FALSE, aes(color = govc.IC))
+```
+Even individually, each dimension seems to be positively correlated with the economic growth, except the Political stability and absence of violence and terrorism.
+```{r}
+govc.percentile.rank %>% mutate(`GDP per capita growth (annual %)`= global_df$`GDP per capita growth (annual %)`) %>% pivot_longer(cols = ends_with("Percentile Rank"), names_to = "Dimensions", values_to = "Percentile Rank") %>%
+ggplot(aes(x =`GDP per capita growth (annual %)`,y = `Percentile Rank`, group = Dimensions)) + theme(legend.position = "bottom",legend.direction="vertical")+geom_point(aes(color = Dimensions))+geom_smooth(method = "lm", se = FALSE, col = "black")+facet_wrap(~Dimensions)
 ```
 
 ## IV) Conclusion
