@@ -5,6 +5,9 @@ format: pdf
 execute:
   echo: false
   warning: false
+editor: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r}
@@ -35,17 +38,17 @@ dvpt_indicators = inner_join(list_country,dvpt_indicators,join_by(`Country Name`
 dvpt_indicators <- dvpt_indicators |>  mutate(`2022 [YR2022]` = parse_double(`2022 [YR2022]`), `2021 [YR2021]` = parse_double(`2021 [YR2021]`),`2020 [YR2020]` = parse_double(`2020 [YR2020]`))
 
 # Computing the mean of the three years to get one and only value for each indicators and have less NA :
-mean.govc <- rowMeans((govc_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
+mean.govc <- rowMeans((govc_indicators |> dplyr::select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
 govc_indicators <- govc_indicators |> mutate("Mean"=mean.govc)
-mean.dvpt <- rowMeans((dvpt_indicators |> select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
+mean.dvpt <- rowMeans((dvpt_indicators |> dplyr::select(`2020 [YR2020]`,`2021 [YR2021]`, `2022 [YR2022]`)),na.rm = TRUE)
 dvpt_indicators <- dvpt_indicators |> mutate("Mean"=mean.dvpt)
 
 # Saving the series' code in a separate dataframe and suppressing the "Series Code" column as well as the three "years column" in each dataframe :
 govc_codes = govc_indicators |> distinct(`Series Name`,`Series Code`) 
 dvpt_codes = dvpt_indicators |> distinct(`Series Name`,`Series Code`)
 
-govc_indicators = govc_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
-dvpt_indicators = dvpt_indicators |> select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
+govc_indicators = govc_indicators |> dplyr::select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
+dvpt_indicators = dvpt_indicators |> dplyr::select(-`Series Code`,-`2020 [YR2020]`,-`2021 [YR2021]`, -`2022 [YR2022]`)
 
 # Supressing the indicators providing data for less than 75% of the countries in our sample :
 critic_minimum = 0.75*NROW(list_country)
@@ -82,33 +85,49 @@ long_global_df <- pivot_longer(global_df, cols = `Access to electricity (% of po
 
 ## I) Research question presentation
 
-The goal of this project is to study the links between the governance of a country, and its development. 
-The notion of development is interesting as it can approximate well-being. It encompasses economic aspects, as poverty has a negative impact on the happiness for sure. We will therefore try to find what variables are correlated to GDP as it is the most known and computed economic indicator to get hints of how to foster economic growth.
-But development can't be limited to this economic lens. 
-More and more economists, sociologist and philosophers highlight the limits of the GDP as indicator of well-being. Indeed, economic development alone may leads to disparities, leaving certain segments of the population marginalized. It is therefore crucial to take into account other dimensions of human development such as access to a good health system and education, or social inequalities. 
+The goal of this project is to study the links between the governance of a country, and its development.
+The notion of development is interesting as it can approximate well-being.
+It encompasses economic aspects, as poverty has a negative impact on the happiness for sure.
+We will therefore try to find what variables are correlated to GDP as it is the most known and computed economic indicator to get hints of how to foster economic growth.
+But development can't be limited to this economic lens.
+More and more economists, sociologist and philosophers highlight the limits of the GDP as indicator of well-being.
+Indeed, economic development alone may leads to disparities, leaving certain segments of the population marginalized.
+It is therefore crucial to take into account other dimensions of human development such as access to a good health system and education, or social inequalities.
 Since the robustness of legal frameworks, the violence and the protection of human rights can also impact economic growth and well-being (increasing a feeling of safety and justice for instance), it is logical to add governance aspects to this study.
-Governance refers to the systems, structures, and processes by which a country is directed and controlled. It encompasses not only formal government institutions but also all practices that influence decision-making. Effective governance is a cornerstone of development, as it establishes the rules of the game, ensures accountability, and promotes transparency. The quality of governance profoundly influences a country's attractiveness to investors, the efficiency of public services, and the overall well-being of its citizens.
+Governance refers to the systems, structures, and processes by which a country is directed and controlled.
+It encompasses not only formal government institutions but also all practices that influence decision-making.
+Effective governance is a cornerstone of development, as it establishes the rules of the game, ensures accountability, and promotes transparency.
+The quality of governance profoundly influences a country's attractiveness to investors, the efficiency of public services, and the overall well-being of its citizens.
 Therefore, understanding these links is crucial for designing effective policies, and fostering sustainable development.
-The Human Development Index was developed by Mahbub ul Haq and Sen to measure development using not only the GDP per capita and purchasing power parity, but also health indicator with the life-expectancy, and education indicators. At the end of our study, we will try to compute another composite indicator encompassing the main development aspects we will have just seen.
+The Human Development Index was developed by Mahbub ul Haq and Sen to measure development using not only the GDP per capita and purchasing power parity, but also health indicator with the life-expectancy, and education indicators.
+At the end of our study, we will try to compute another composite indicator encompassing the main development aspects we will have just seen.
 
 ## II) Data sets descriptions
 
 ## III) Data analysis
 
-When we think about "development", we first think of economic growth. Indeed, as depicted in the following plot, economic growth has a negative and significant correlation with poverty. 
+When we think about "development", we first think of economic growth.
+Indeed, as depicted in the following plot, economic growth has a negative and significant correlation with poverty.
+
 ```{r}
 pivot_longer(global_df,cols = c("Poverty headcount ratio at national poverty lines (% of population)","Poverty headcount ratio at $2.15 a day (2017 PPP) (% of population)","Prevalence of moderate or severe food insecurity in the population (%)"), names_to = "poverty estimates", values_to = "estimates value") |>
   ggplot(aes(x =`GDP per capita growth (annual %)`,y = `estimates value`)) + 
   geom_point(aes(color = `poverty estimates`,alpha=0.5))+geom_smooth(method = "lm", se = FALSE, col="black")+facet_wrap(~`poverty estimates`)+theme(legend.position = "bottom",legend.direction="vertical")
 ```
 
-If we want to improve the situation of developing countries, we must then try to foster growth. But how can we go that ? What parameters play a role in economic growth ?
-While trying to explain economic growth, Sollow acknowledged two factors of production : capital and labor. The "residual" he obtained once he took those factors into account was significant and attributed to the productivity of the production factors. Several variables of the data set can indicate productivity : the HCI index computed by the World Bank for females, males and the total population, and the number of researchers in R&D per million people. As mentioned earlier the HCI was computed precisely to estimates the productivity of workers of tomorrow, and the more researchers there is, the more likely they will find new innovation that will possibly increase capital and/or labor productivity.
+If we want to improve the situation of developing countries, we must then try to foster growth.
+But how can we go that ?
+What parameters play a role in economic growth ?
+While trying to explain economic growth, Sollow acknowledged two factors of production : capital and labor.
+The "residual" he obtained once he took those factors into account was significant and attributed to the productivity of the production factors.
+Several variables of the data set can indicate productivity : the HCI index computed by the World Bank for females, males and the total population, and the number of researchers in R&D per million people.
+As mentioned earlier the HCI was computed precisely to estimates the productivity of workers of tomorrow, and the more researchers there is, the more likely they will find new innovation that will possibly increase capital and/or labor productivity.
 Let's check if our data go along with those hints :
 
 ```{r}
 plot.HCI.growth <- ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Human capital index (HCI) (scale 0-1)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
 ```
+
 ```{r}
 plot.HCI.GDP <- pivot_longer(global_df,cols = c("Human capital index (HCI) (scale 0-1)","Human capital index (HCI), female (scale 0-1)","Human capital index (HCI), male (scale 0-1)"), 
                         names_to = "HCI", 
@@ -116,25 +135,36 @@ plot.HCI.GDP <- pivot_longer(global_df,cols = c("Human capital index (HCI) (scal
   ggplot(aes(x =`GDP per capita, PPP (current international $)`,y = `HCI value`, group = HCI)) + geom_point(aes(color = HCI))+ theme(legend.position = "bottom",legend.direction="vertical")
 grid.arrange(plot.HCI.GDP, plot.HCI.growth, ncol = 2)
 ```
-These two first graphs show a slightly positive correlation between the HCI and the GDP growth, and a positive but decreasing relationship between the HCI and the GDP per capita taking into account the parity of purchasing power. We can also note that the HCI is higher for females than for males : that means that there is more chance for a girl than for a boy born between 2020 and 2022 to become as productive as they would if they enjoyed full health and complete education when they will grow up. 
+
+These two first graphs show a slightly positive correlation between the HCI and the GDP growth, and a positive but decreasing relationship between the HCI and the GDP per capita taking into account the parity of purchasing power.
+We can also note that the HCI is higher for females than for males : that means that there is more chance for a girl than for a boy born between 2020 and 2022 to become as productive as they would if they enjoyed full health and complete education when they will grow up.
 
 ```{r}
 plot.GDP.RD <- ggplot(global_df, aes(x =`GDP per capita, PPP (current international $)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
 plot.growth.RD <- ggplot(global_df, aes(x =`GDP per capita growth (annual %)`, y = `Researchers in R&D (per million people)`))+geom_point()+geom_smooth(method = "lm", se = FALSE, col = "red")
 grid.arrange(plot.GDP.RD, plot.growth.RD, ncol = 2)
 ```
-The two graphs right above show a positive and quite linear correlation between the number of researchers per million and the GDP per capita taking into account the parity of purchasing power. The relationship between the number of researchers and the economic growth is far less clear.
-Of course those four graphs are not sufficient to deduce a causal relationship between those variables, especially to see the links between HCI or the number of researchers per million people and economic growth. Indeed since those variable are supposed to impact future growth we would need either the past number of researchers per million people and the HCI level of at least 20 years ago, or the future economic growth to see the eventual impacts. But since the corresponding data are not available, those results are still interesting : they at least do not seem not contradict our hypotheses.
 
-Another common variable used to explain economic growth is the investment (again to increase productivity via innovation for example). Foreign Direct Investment impacts on growth are very discussed in economic literature, many arguments are both in favor and against FDI positive impacts on growth. For instance FDI could have positive knowledge and technological spillover on host country, but could also evict local firm in a way that just make profit leave the host country. The two following graphs shows that there are no significantly positive or negative correlation between FDI net inflows and outflows and GDP per capita growth.
+The two graphs right above show a positive and quite linear correlation between the number of researchers per million and the GDP per capita taking into account the parity of purchasing power.
+The relationship between the number of researchers and the economic growth is far less clear.
+Of course those four graphs are not sufficient to deduce a causal relationship between those variables, especially to see the links between HCI or the number of researchers per million people and economic growth.
+Indeed since those variable are supposed to impact future growth we would need either the past number of researchers per million people and the HCI level of at least 20 years ago, or the future economic growth to see the eventual impacts.
+But since the corresponding data are not available, those results are still interesting : they at least do not seem not contradict our hypotheses.
+
+Another common variable used to explain economic growth is the investment (again to increase productivity via innovation for example).
+Foreign Direct Investment impacts on growth are very discussed in economic literature, many arguments are both in favor and against FDI positive impacts on growth.
+For instance FDI could have positive knowledge and technological spillover on host country, but could also evict local firm in a way that just make profit leave the host country.
+The two following graphs shows that there are no significantly positive or negative correlation between FDI net inflows and outflows and GDP per capita growth.
+
 ```{r}
 pivot_longer(global_df,cols = c("Foreign direct investment, net outflows (% of GDP)","Foreign direct investment, net inflows (% of GDP)"), names_to = "FDI", values_to = "FDI value") |>
   ggplot(aes(x =`GDP per capita growth (annual %)`,y = `FDI value`)) + 
   geom_point(aes(color = FDI,alpha=0.5))+geom_smooth(method = "lm", se = FALSE, col="black")+facet_wrap(~FDI)+theme(legend.position = "bottom",legend.direction="vertical")
 ```
 
-North work suggest that institutions and governance also impact the GDP. 
-To study this impact, we can compute a composite indicator by doing the mean of the percentile rank of the six dimensions of governance measured by the World Bank and see its relationship with the GDP per capita PPP. 
+North work suggest that institutions and governance also impact the GDP.
+To study this impact, we can compute a composite indicator by doing the mean of the percentile rank of the six dimensions of governance measured by the World Bank and see its relationship with the GDP per capita PPP.
+
 ```{r}
 # Gathering of the governance variables according to their categories
 govc.percentile.rank <- global_df%>% dplyr::select(ends_with("Percentile Rank"))
@@ -148,49 +178,120 @@ IC.df <-govc.IC.percentile.rank %>% mutate(govc.IC.lower.bound = (rowMeans(govc.
 IC.df %>% mutate(`GDP per capita growth (annual %)`= global_df$`GDP per capita growth (annual %)`) %>% pivot_longer(cols = starts_with("govc"), names_to = "govc.IC", values_to = "govc.IC.value") %>%
 ggplot(aes(x =`GDP per capita growth (annual %)`,y = `govc.IC.value`, group = govc.IC)) + geom_point(aes(color = govc.IC,alpha=0.5))+ theme(legend.position = "bottom",legend.direction="vertical")+geom_smooth(method = "lm", se = FALSE, aes(color = govc.IC))
 ```
+
 Even individually, each dimension seems to be positively correlated with the economic growth, except the Political stability and absence of violence and terrorism.
+
 ```{r}
 govc.percentile.rank %>% mutate(`GDP per capita growth (annual %)`= global_df$`GDP per capita growth (annual %)`) %>% pivot_longer(cols = ends_with("Percentile Rank"), names_to = "Dimensions", values_to = "Percentile Rank") %>%
 ggplot(aes(x =`GDP per capita growth (annual %)`,y = `Percentile Rank`, group = Dimensions)) + theme(legend.position = "bottom",legend.direction="vertical")+geom_point(aes(color = Dimensions))+geom_smooth(method = "lm", se = FALSE, col = "black")+facet_wrap(~Dimensions)
 ```
-Economists discuss the relevance of GDP to indicate well-being.
+
+The relevance of GDP to indicate well-being is a debate faced by all economists.
+As mentioned in the first section of this report, other indicators of development have then been created to take into account more dimensions of the development, the most used one being the Human Development Index.
+This indicator still have some limits.
+We can therefore try imagine another composite indicator to fix them.
+To compute the HDI, the education dimension is obtained with variables measuring the "quantity" of education : the mean years of schooling and the expected years of schooling, but none about the education quality.
+By using adult literacy rate and the percentage of children of primary age out of school, we can take into account both quantity and quality of education.
+We will be able to compute the health dimension using the HDI method with the life expectancy.
+The Human capital index is also related to health and education but since it doesn't use the variables we just listed, we can use it to add more information and aspects of those two development's dimension.
+An important dimension of development that is not taken into account in the HDI is infrastructure.
+Variables about infrastructures can be related to health issues : the share of the population practicing open defecation, the share of the population using safely managed drinking water services and the share of population using safely managed sanitation services; or related to development and happiness showing poverty or a certain level of comfort such as the share of the urban population living in slums, the share of population having access to electricity, the share of the population using internet and the kilometers of railroad per capita.
+Finally, although we saw that GDP is negatively correlated to poverty, adding variables concerning that matter seems important since economic growth can sometime benefit only to the richest part of the population.
+
+In order to get an indicator comprise between 0 and 1 for each dimension and then for the final composite indicator, we will use the same method of data normalization as for the HDI :
+
+*(value of the variable for the country - minimum of the variable) / (maximum of the variable - minimum of the variable)*
+
+Let's first compute the education variable as the mean of the normalized adult literacy rate and the normalized percentage of children of primary age that actually go to school (this last number being obtained by doing 100-percentage of children of primary age out of school).
+```{r}
+normalization <- function(vector){
+  x = (vector-min(vector,na.rm=T))/(max(vector,na.rm = T)-min(vector,na.rm=T))
+  return(x)
+}
+```
+
+```{r}
+scholarized.children = as.data.frame(100 - global_df$`Children out of school (% of primary school age)`)
+
+indic.edu = as.data.frame((normalization(scholarized.children) +(normalization(global_df$`Literacy rate, adult total (% of people ages 15 and above)`))/2))%>% rename(Education.dimension.indicator = `100 - global_df$\`Children out of school (% of primary school age)\``)
+
+ggplot(data= indic.edu, aes(x=Education.dimension.indicator,na.rm=T))+geom_histogram(bins=50)+
+geom_rug(alpha=0.1)
+```
+This histogram shows that the majority of country have a pretty good indicator of education. Unfortunately there are `r sum(is.na(indic.edu))` missing variables, so it is already clear that we will not be able to use the composite indicator formulated just above to study the link between governance dimensions and development in a broader definition. It might still be interesting to go along with the computation of the rest of the dimensions.
+
+The health indicator is obtained with the normalized life expectancy.
+```{r}
+indic.health = as.data.frame(normalization(global_df$`Life expectancy at birth, total (years)`)) %>% rename(Health.dimension.indicator =`normalization(global_df$\`Life expectancy at birth, total (years)\`)`)
+
+ggplot(data= indic.health, aes(x=Health.dimension.indicator,na.rm=T))+geom_histogram(bins=50)+
+geom_rug(alpha=0.1)
+```
+There are far less missing variables (only `r sum(is.na(indic.health))`).
+
+We can do the same for the HCI :
+```{r}
+
+indic.HCI = as.data.frame(normalization(global_df$`Human capital index (HCI) (scale 0-1)`)) %>% rename(HCI.normalized.indicator = `normalization(global_df$\`Human capital index (HCI) (scale 0-1)\`)`)
+
+ggplot(data= indic.HCI, aes(x=HCI.normalized.indicator,na.rm=T))+geom_histogram(bins=50)+
+geom_rug(alpha=0.1)
+```
+There are `r sum(is.na(indic.HCI))` missing variables.
+
+Let's compute now the infrastructure indicator. In order to prioritize them we will take the normalized share of the population not practicing open defecation, share of the population using safely managed drinking water services, the normalized share of population using safely managed sanitation services and the normalized share of the urban population not living in slums with a weight of 1/5, while taking the normalized share of population having access to electricity with a weight of 1/10 and the normalized share of the population using internet and the normalized kilometers of railroad per capita with a weight of 1/20.
+```{r}
+no.public.defecation <- 100 - global_df$`People practicing open defecation (% of population)`
+indic.infra <- as.data.frame(1/5*(normalization(no.public.defecation))+1/5*(normalization(global_df$`People using safely managed drinking water services (% of population)`))+1/5*(normalization(global_df$`People using safely managed sanitation services (% of population)`))+1/5*(normalization(global_df$`Population living in slums (% of urban population)`))+1/10*(normalization(global_df$`Access to electricity (% of population)`))+1/20*(normalization(global_df$`Individuals using the Internet (% of population)`))+1/20*(normalization((global_df$`Rail lines (total route-km)`/global_df$`Population, total`)))) %>% rename(Infrastructure.dimension.indicator = `1/5 * (normalization(no.public.defecation)) + 1/5 * (normalization(global_df$\`People using safely managed drinking water services (% of population)\`)) + 1/5 * (normalization(global_df$\`People using safely managed sanitation services (% of population)\`)) + 1/5 * (normalization(global_df$\`Population living in slums (% of urban population)\`)) + 1/10 * (normalization(global_df$\`Access to electricity (% of population)\`)) + 1/20 * (normalization(global_df$\`Individuals using the Internet (% of population)\`)) +      1/20 * (normalization((global_df$\`Rail lines (total route-km)\`/global_df$\`Population, total\`)))`)
+
+ggplot(data= indic.infra, aes(x=Infrastructure.dimension.indicator,na.rm=T))+geom_histogram(bins=50)+
+geom_rug(alpha=0.1)
+```
+The number of missing variables is huge for this indicator : `r sum(is.na(indic.infra))`.
+
+Finally we can compute the "poverty dimensions" using the normalized value of 100-the share of people living with less than the national poverty lines (% of population), of 100- the share of people living with less than $2.15 a day (2017 PPP) and of 100- the percentage of prevalence of moderate or severe food insecurity in the population. We transform those variable so that 1 represent the most positive situation a country can have.
+```{r}
+pp.over.2.15 <- 100- global_df$`Poverty headcount ratio at $2.15 a day (2017 PPP) (% of population)`
+pp.over.nat.pov.line <- 100 - global_df$`Poverty headcount ratio at national poverty lines (% of population)`
+no.food.insecurity <- 100- global_df$`Prevalence of moderate or severe food insecurity in the population (%)`
+
+indic.poverty <- as.data.frame(1/3*normalization(pp.over.2.15)+1/3*normalization(pp.over.nat.pov.line)+1/3*normalization(no.food.insecurity))%>% rename (Poverty.dimension.indicator = `1/3 * normalization(pp.over.2.15) + 1/3 * normalization(pp.over.nat.pov.line) + 1/3 * normalization(no.food.insecurity)`)
+
+ggplot(data= indic.poverty, aes(x=Poverty.dimension.indicator,na.rm=T))+geom_histogram(bins=50)+
+geom_rug(alpha=0.1)
+```
+Again the number of missing variables is far too big for this indicator to be usable : `r sum(is.na(indic.infra))`.
+
+
+
 
 ## IV) Conclusion
 
 ## V) Annex (data import work and sources)
 
 #### Data import work :
-Here are the few steps to compute the global data frame used in this study :
-First both data sets are loaded, we make sure that ".." is perceived as NA.
+
+Here are the few steps to compute the global data frame used in this study : First both data sets are loaded, we make sure that ".." is perceived as NA.
 We check that the type of each of the column with values is double, and make the change necessary for the values'column of the development data set for which it was not the case.
 Then the rows containing data of countries present in both data frame are selected.
 In order to have a variable column with less NA, we compute the mean of those three columns.
-We then select the indicators for which there is more than 25% of NA. 
+We then select the indicators for which there is more than 25% of NA.
 Finally, the joining of the two data sets : we pivot them to get their wide version, and do an inner join.
 Once they are joined, we pivot again the global data frame we just obtained to have its longer form.
 
-The code of this preparation work is visible at the beginning of the quarto file corresponding to this report. A longer and more detailed version of it is also available in the "project_goal&data_description" quarto file present in the github repository of this project : [github-repository](https://github.com/E10is3/final-project.git)
+The code of this preparation work is visible at the beginning of the quarto file corresponding to this report.
+A longer and more detailed version of it is also available in the "project_goal&data_description" quarto file present in the github repository of this project : [github-repository](https://github.com/E10is3/final-project.git)
 
 #### Sources :
-The data I use come from two open source data sets of the World Bank. 
-The first one includes governance indicators available via this link : [WorldBank-governance-indicators](https://databank.worldbank.org/source/worldwide-governance-indicators#)
-Please note that the ticked options are the preset ones by the website and not the ones I will use. To get the exact same .csv file, select all the 214 countries available, the years 2020, 2021 and 2022, and all the 36 variable series before the download.
-The second data set includes development indicators, available via this link : [WorldBank-development-indicators](https://databank.worldbank.org/source/world-development-indicators#)
-To get the exact same .csv file, select all the 266 countries available, the years 2020, 2021 and 2022. I first selected `r NROW(dvpt_codes)` variable series but kept only `r NROW(keep.dvpt.indicator)-1` of them, since the other three provided data for less than 75% of the countries of the final sample. Here is the list of those `r NROW(keep.dvpt.indicator)-1` variables series :
+
+The data I use come from two open source data sets of the World Bank.
+The first one includes governance indicators available via this link : [WorldBank-governance-indicators](https://databank.worldbank.org/source/worldwide-governance-indicators#) Please note that the ticked options are the preset ones by the website and not the ones I will use.
+To get the exact same .csv file, select all the 214 countries available, the years 2020, 2021 and 2022, and all the 36 variable series before the download.
+The second data set includes development indicators, available via this link : [WorldBank-development-indicators](https://databank.worldbank.org/source/world-development-indicators#) To get the exact same .csv file, select all the 266 countries available, the years 2020, 2021 and 2022.
+I first selected `r NROW(dvpt_codes)` variable series but kept only `r NROW(keep.dvpt.indicator)-1` of them, since the other three provided data for less than 75% of the countries of the final sample.
+Here is the list of those `r NROW(keep.dvpt.indicator)-1` variables series :
+
 ```{r}
 #| message: false
 print(keep.dvpt.indicator)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
