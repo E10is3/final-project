@@ -262,8 +262,9 @@ geom_rug(alpha=0.1)
 ```
 Again the number of missing variables is far too big for this indicator to be usable : `r sum(is.na(indic.infra))`.
 
-
-
+If there were not as much missing variables, we would now have to think of if we want to gather those indicators in a mean with equal weight or not, and in an arithmetic way or a geometric way, depending on if we want to penalize more really low value or not.
+To be able to include more dimensions of the development, we would need to find other database on infrastructure, poverty and education with variables available for more countries. 
+But since the HCI is available for a large sample of countries, it could be interesting to add it in some way in the calculation of a development indicator to have a more complete and future oriented dimensions of health and education.
 
 ## IV) Conclusion
 
