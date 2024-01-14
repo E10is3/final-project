@@ -104,6 +104,31 @@ At the end of our study, we will try to compute another composite indicator enco
 
 ## II) Data sets descriptions
 
+The data I use come from two open source data sets of the World Bank. One includes governance indicators, the other includes development indicators. The link to the sources and the step to obtain the exact same data sets are available in the annex at the end of this file.
+
+#### About the governance indicators :
+The data set include indicators for six dimensions of governance: Control of Corruption; Government Effectiveness; Political Stability and Absence of Violence/Terrorism; Regulatory Quality; Rule of Law; and Voice and Accountability. For each dimensions, the data set provides an indicator and its standard error, the rank of the country, both upper and lower bound of a 95% confidence interval for this ranking, as well as the number of sources used to compute the indicator.
+Each value is obtained by using several surveys asking a sample of the country population its perception on the corresponding subject:
+- The control of corruption indicator captures perceptions of the extent to which public power is exercised for private gain, including both petty and grand forms of corruption. 
+- The government effectiveness captures perceptions of the quality of public services, the quality of the civil service and the degree of its independence from political pressures, the quality of policy formulation and implementation, and the credibility of the government’s commitment to such policies.
+- The political stability measures perceptions of the likelihood of political instability and/or politically-motivated violence, including terrorism.
+- The regulatory quality captures perceptions of the ability of the government to formulate and implement sound policies and regulations that permit and promote private sector development.
+- The rule of law captures perceptions of the extent to which agents have confidence in and abide by the rules of society, and in particular the quality of contract enforcement, property rights, the police, and the courts, as well as the likelihood of crime and violence.
+- Finally, the voice and accountability indicator captures perceptions of the extent to which a country’s citizens are able to participate in selecting their government, as well as freedom of expression, freedom of association, and a free media.
+
+#### About the develoment indicators :
+The data set is a compilation the World Bank did from officially recognized international sources, including national, regional and global estimates. In order to have a multidimensional perception of the development of each country, I selected well known indicators such as the gross domestic product per capita and taking into account purchasing power parity or the FDI inflows and outflows, as well as indicators related to health such as life expectancy; education such as literacy rate or number of children out of school; infrastructure such as access to electricity, internet use, share of people using safely manage sanitation services, or kilometers of railroad; and poverty such as the prevalence of food insecurity or the share of people living with less than 2.15$ per day.
+Another variable of great interest is the Human Capital Index which is computed by the World Bank and represents the amount of human capital that a child born today can expect to attain by age 18. It therefore conveys the productivity of the future generation of workers compared to a benchmark of complete education and full health. It is computed by using several variables :
+- The probability of survival to age 5.
+- The expected years of school.
+- Harmonized test scores.
+- The learning-adjusted years of school
+- The adult survival rate : the probability for a 15 year old to survive until 60.
+- The fraction of children under 5 not stunted.
+
+#### About the final data set
+After data cleaning and joining of those two data sets, we will be able to work with a data set containing `r NCOL(global_df)` variables for `r NROW(global_df)` countries.
+
 ## III) Data analysis
 
 When we think about "development", we first think of economic growth.
@@ -264,7 +289,7 @@ Again the number of missing variables is far too big for this indicator to be us
 
 If there were not as much missing variables, we would now have to think of if we want to gather those indicators in a mean with equal weight or not, and in an arithmetic way or a geometric way, depending on if we want to penalize more really low value or not.
 To be able to include more dimensions of the development, we would need to find other database on infrastructure, poverty and education with variables available for more countries. 
-But since the HCI is available for a large sample of countries, it could be interesting to add it in some way in the calculation of a development indicator to have a more complete and future oriented dimensions of health and education.
+But since the HCI is available for a large sample of countries, it could be interesting to add it in some way in the calculation of a development indicator to have a more complete and future oriented dimensions of health and education. In the meantime, using the GDP, the HDI, the HCI and the governance estimates available for a larger sample allow better studies on the links between development and governance.
 
 ## IV) Conclusion
 
